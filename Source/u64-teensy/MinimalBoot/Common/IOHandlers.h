@@ -17,6 +17,29 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#ifndef IOHANDLERS_H
+#define IOHANDLERS_H
+
+/* --- USB MIDI Feature Detection --------------------------------------- */
+/* Unity64 requires Teensy USB Serial + MIDI mode or equivalent combination */
+
+#if defined(USB_MIDI) || \
+    defined(USB_MIDI_SERIAL) || \
+    defined(USB_SERIAL_MIDI) || \
+    defined(USB_MIDI_AUDIO) || \
+    defined(USB_MIDI_AUDIO_SERIAL) || \
+    defined(USB_MIDI_SERIAL_AUDIO)
+/* All valid Teensy USB MIDI entry points */
+extern usb_midi_class usbMIDI;
+#define usbDevMIDI usbMIDI
+#else
+#if defined(UNITY64_UPPER_FIRMWARE)
+  #ifndef USB_MIDI
+    #error "Unity64 UPPER requires USB MIDI enabled (Serial + MIDI equivalent)"
+  #endif
+#endif
+#endif
+
 #ifdef MinimumBuild
    //from IOH_TeensyROM.c :
    uint8_t RegNextIOHndlr;
@@ -38,18 +61,11 @@
    USBHIDParser hid3(myusbHost);  //need all 3?
 
    USBSerial USBHostSerial(myusbHost);   //update HostSerialType to match, defined in PN532_UHSU.h
-   //USBSerial           USBHostSerial(myusbHost);    // only for those Serial devices who transfer <=64 bytes (like T3.x, FTDI...)
-   //    Works with CH340(NFC), T3.2, Lolin D32 Pro,  *not* T4
-   //USBSerial_BigBuffer USBHostSerial(myusbHost, 1); // Handles anything up to 512 bytes
-   //    Needed for T4, also works with others,  uses an extra 3,456 bytes of RAM1
-   //    *Crashes* NFC, addr2line points to  libraries/PN532/PN532.cpp:line 543
-   //USBSerial_BigBuffer USBHostSerial(myusbHost);    // Handles up to 512 but by default only for those > 64 bytes.  
-   //    doesnt work for most, "by default only for those > 64 bytes"
 
    EthernetUDP udp;
    EthernetClient client;
 
-   #define usbDevMIDI usbMIDI
+   /* Teensy core >= 1.59 provides usbDevMIDI directly */
    #define nfcStateEnabled       0
    #define nfcStateBitDisabled   1
    #define nfcStateBitPaused     2
@@ -59,14 +75,14 @@
 
 struct stcIOHandlers
 {
-  char Name[IOHNameLength];                        //Name of handler
-  void (*InitHndlr)();                             //Called once at handler startup
-  void (*IO1Hndlr)(uint8_t Address, bool R_Wn);    //IO1 R/W handler
-  void (*IO2Hndlr)(uint8_t Address, bool R_Wn);    //IO2 R/W handler
-  void (*ROMLHndlr)(uint32_t Address);             //ROML Read handler, in addition to any ROM data sent
-  void (*ROMHHndlr)(uint32_t Address);             //ROMH Read handler, in addition to any ROM data sent
-  void (*PollingHndlr)();                          //Polled in main routine
-  void (*CycleHndlr)();                            //called at the end of EVERY c64 cycle
+  char Name[IOHNameLength];
+  void (*InitHndlr)();
+  void (*IO1Hndlr)(uint8_t Address, bool R_Wn);
+  void (*IO2Hndlr)(uint8_t Address, bool R_Wn);
+  void (*ROMLHndlr)(uint32_t Address);
+  void (*ROMHHndlr)(uint32_t Address);
+  void (*PollingHndlr)();
+  void (*CycleHndlr)();
 };
 
 #ifndef MinimumBuild
@@ -90,31 +106,31 @@ struct stcIOHandlers
    #include "IO_Handlers/IOH_GMod2.c"
    #include "IO_Handlers/IOH_MagicDesk2.c"
 
-
-stcIOHandlers* IOHandler[] =  //Synch order/qty with enum enumIOHandlers
+stcIOHandlers* IOHandler[] =
 {
-   &IOHndlr_None,               //IOH_None,
+   &IOHndlr_None,
 #ifndef MinimumBuild
-   &IOHndlr_SwiftLink,          //IOH_Swiftlink,
-   &IOHndlr_MIDI_Datel,         //IOH_MIDI_Datel,      
-   &IOHndlr_MIDI_Sequential,    //IOH_MIDI_Sequential, 
-   &IOHndlr_MIDI_Passport,      //IOH_MIDI_Passport,   
-   &IOHndlr_MIDI_NamesoftIRQ,   //IOH_MIDI_NamesoftIRQ,
-   &IOHndlr_Debug,              //IOH_Debug, //last manually selectable, see LastSelectableIOH
-                                
-   &IOHndlr_TeensyROM,          //IOH_TeensyROM, 
-   &IOHndlr_ASID,               //IOH_ASID,
-   &IOHndlr_TR_BASIC,           //IOH_TR_BASIC,
+   &IOHndlr_SwiftLink,
+   &IOHndlr_MIDI_Datel,
+   &IOHndlr_MIDI_Sequential,
+   &IOHndlr_MIDI_Passport,
+   &IOHndlr_MIDI_NamesoftIRQ,
+   &IOHndlr_Debug,
+   &IOHndlr_TeensyROM,
+   &IOHndlr_ASID,
+   &IOHndlr_TR_BASIC,
 #endif
-   &IOHndlr_EpyxFastLoad,       //IOH_EpyxFastLoad,
-   &IOHndlr_MagicDesk,          //IOH_MagicDesk,
-   &IOHndlr_Dinamic,            //IOH_Dinamic,
-   &IOHndlr_Ocean1,             //IOH_Ocean1,
-   &IOHndlr_FunPlay,            //IOH_FunPlay,
-   &IOHndlr_SuperGames,         //IOH_SuperGames,
-   &IOHndlr_C64GameSystem3,     //IOH_C64GameSystem3,
-   &IOHndlr_EasyFlash,          //IOH_EasyFlash,
-   &IOHndlr_ZaxxonSuper,        //IOH_ZaxxonSuper,
-   &IOHndlr_GMod2,              //IOH_GMod2,
-   &IOHndlr_MagicDesk2,         //IOH_MagicDesk2,
+   &IOHndlr_EpyxFastLoad,
+   &IOHndlr_MagicDesk,
+   &IOHndlr_Dinamic,
+   &IOHndlr_Ocean1,
+   &IOHndlr_FunPlay,
+   &IOHndlr_SuperGames,
+   &IOHndlr_C64GameSystem3,
+   &IOHndlr_EasyFlash,
+   &IOHndlr_ZaxxonSuper,
+   &IOHndlr_GMod2,
+   &IOHndlr_MagicDesk2,
 };
+
+#endif /* IOHANDLERS_H */

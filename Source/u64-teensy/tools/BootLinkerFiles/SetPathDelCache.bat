@@ -1,5 +1,5 @@
 
-set LocalPath=C:\Users\trav\AppData\Local
+set LocalPath=%LOCALAPPDATA%
 ::set LocalT4CorePath=%LocalPath%\Arduino15\packages\teensy\hardware\avr\1.59.0\cores\teensy4
 set LocalT4CorePath=%LocalPath%\Arduino15\packages\teensy\hardware\avr\0.60.1\cores\teensy4
 

@@ -13,5 +13,3 @@ HexCombineUtil\HexCombine.exe %MinimalHex% %MainHex% %CombinedHex%
 @echo .
 @echo    *** Verify file dates and memory locations!
 @echo .
-
-pause

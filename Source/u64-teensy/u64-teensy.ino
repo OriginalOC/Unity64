@@ -20,6 +20,7 @@
 //  TeensyROM: A C64 ROM emulator and loader/interface cartidge based on the Teensy 4.1
 //  Copyright (c) 2023 Travis Smith <travis@sensoriumembedded.com> 
 
+#define UNITY64_UPPER_FIRMWARE 1
 
 #include <SD.h>
 #include <USBHost_t36.h>
